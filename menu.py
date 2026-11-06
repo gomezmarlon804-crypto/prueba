@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from entradas import leer_entero, leer_hora, leer_opcion, leer_si_no, leer_texto
 from gestion_registros import gestionar_registros
 from horario import (
     MAX_MINUTOS_TRAMO,
@@ -41,47 +42,29 @@ def reportar_retraso():
             f"| Conductor: {ruta['conductor']} | Hora: {ruta['hora_salida']}"
         )
 
-    try:
-        ruta_index = int(input("Seleccione la ruta: ")) - 1
+    while True:
+        ruta_index = leer_entero("Seleccione la ruta: ", 1, len(rutas)) - 1
+        if ruta_index in range(len(rutas)):
+            break
         if ruta_index not in range(len(rutas)):
             print("Selección de ruta inválida.")
-            return
-    except ValueError:
-        print("Debe ingresar un número válido.")
-        return
-
-    try:
-        minutos = int(input("¿Cuántos minutos de retraso se esperan?: "))
-    except ValueError:
-        print("El retraso debe expresarse en minutos.")
-        return
-
-    if not 1 <= minutos <= 1440:
-        print("El retraso debe estar entre 1 y 1440 minutos.")
-        return
+    minutos = leer_entero("¿Cuántos minutos de retraso se esperan?: ", 1, 1440)
 
     print("\nMotivo:")
     print("1. Tráfico o congestión")
     print("2. Inconveniente mecánico")
     print("3. Condiciones climáticas")
     print("4. Otro")
-    motivo_opcion = input("Seleccione el motivo: ").strip()
+    motivo_opcion = leer_opcion("Seleccione el motivo: ", ("1", "2", "3", "4"))
     motivos = {
         "1": "Tráfico o congestión",
         "2": "Inconveniente mecánico",
         "3": "Condiciones climáticas",
         "4": "",
     }
-    if motivo_opcion not in motivos:
-        print("Opción de motivo inválida.")
-        return
-
     motivo = motivos[motivo_opcion]
     if motivo_opcion == "4":
-        motivo = input("Describa el motivo: ").strip()
-        if not motivo:
-            print("Debe indicar el motivo del retraso.")
-            return
+        motivo = leer_texto("Describa el motivo: ")
 
     ruta = rutas[ruta_index]
     ruta["retraso"] = {
@@ -101,23 +84,21 @@ def registrar_conductor():
     limpiar_pantalla()
     print("\n--- Registro de conductor ---")
 
-    nombre = input("Ingrese nombre completo: ").strip()
-    identificacion = input("Ingrese identificación: ").strip()
-    telefono = input("Ingrese teléfono: ").strip()
-
-    if not all([nombre, identificacion, telefono]):
-        print("El nombre, la identificación y el teléfono son obligatorios.")
-        return
-    if not any(caracter.isdigit() for caracter in telefono):
+    nombre = leer_texto("Ingrese nombre completo: ")
+    while True:
+        identificacion = leer_texto("Ingrese identificación: ")
+        if any(
+            conductor["identificacion"].casefold() == identificacion.casefold()
+            for conductor in conductores
+        ):
+            print(f"La identificación '{identificacion}' ya está registrada.")
+            continue
+        break
+    while True:
+        telefono = leer_texto("Ingrese teléfono: ")
+        if any(caracter.isdigit() for caracter in telefono):
+            break
         print("El teléfono debe contener al menos un número.")
-        return
-
-    if any(
-        conductor["identificacion"].casefold() == identificacion.casefold()
-        for conductor in conductores
-    ):
-        print(f"La identificación '{identificacion}' ya está registrada.")
-        return
 
     conductores.append(
         {
@@ -134,31 +115,32 @@ def registrar_vehiculo():
     print("\n--- Registro de vehículo ---")
 
     placa = input("Ingrese la placa del vehículo: ").strip().upper()
+    while not placa:
+        print("La placa del vehículo no puede estar vacía.")
+        placa = input("Ingrese la placa del vehículo: ").strip().upper()
     marca = input("Ingrese la marca (opcional): ").strip()
     modelo = input("Ingrese el modelo (opcional): ").strip()
     anio = input("Ingrese el año (opcional): ").strip()
-    tipo = input("Ingrese el tipo de vehículo: ").strip()
-    capacidad = input("Ingrese la capacidad de pasajeros: ").strip()
+    tipo = leer_texto("Ingrese el tipo de vehículo: ")
+    capacidad = leer_entero("Ingrese la capacidad de pasajeros: ", 1)
 
-    if not all([placa, tipo, capacidad]):
-        print("La placa, el tipo y la capacidad son obligatorios.")
-        return
-
-    try:
-        capacidad = int(capacidad)
-        if capacidad <= 0:
-            raise ValueError
-    except ValueError:
-        print("La capacidad debe ser un número entero positivo.")
-        return
-
-    if anio and (not anio.isdigit() or int(anio) < 1886 or int(anio) > datetime.now().year + 1):
+    while True:
+        if not anio:
+            break
+        if (
+            anio.isdigit()
+            and 1886 <= int(anio) <= datetime.now().year + 1
+        ):
+            break
         print("El año debe ser válido y no puede estar en el futuro.")
-        return
+        anio = input("Ingrese el año (opcional): ").strip()
 
-    if any(vehiculo["placa"].casefold() == placa.casefold() for vehiculo in vehiculos):
+    while any(
+        vehiculo["placa"].casefold() == placa.casefold()
+        for vehiculo in vehiculos
+    ):
         print(f"El vehículo con placa '{placa}' ya está registrado.")
-        return
+        placa = input("Ingrese otra placa: ").strip().upper()
 
     vehiculos.append(
         {
@@ -187,14 +169,9 @@ def asignar_ruta():
     for index, conductor in enumerate(conductores, start=1):
         print(f"{index}. {conductor['nombre']} - ID: {conductor['identificacion']}")
 
-    try:
-        conductor_index = int(input("Seleccione el conductor: ")) - 1
-        if conductor_index not in range(len(conductores)):
-            print("Opción de conductor inválida.")
-            return
-    except ValueError:
-        print("Debe ingresar un número válido.")
-        return
+    conductor_index = (
+        leer_entero("Seleccione el conductor: ", 1, len(conductores)) - 1
+    )
 
     print("\nVehículos disponibles:")
     for index, vehiculo in enumerate(vehiculos, start=1):
@@ -205,86 +182,43 @@ def asignar_ruta():
             descripcion = vehiculo["tipo"]
         print(f"{index}. {descripcion} - Placa: {vehiculo['placa']}")
 
-    try:
-        vehiculo_index = int(input("Seleccione el vehículo: ")) - 1
-        if vehiculo_index not in range(len(vehiculos)):
-            print("Opción de vehículo inválida.")
-            return
-    except ValueError:
-        print("Debe ingresar un número válido.")
-        return
+    vehiculo_index = (
+        leer_entero("Seleccione el vehículo: ", 1, len(vehiculos)) - 1
+    )
 
-    origen = input("Ingrese el punto de inicio (origen): ").strip()
-    destino = input("Ingrese el destino final: ").strip()
-    if not origen or not destino:
-        print("El origen y el destino no pueden estar vacíos.")
-        return
-
-    regreso = input("¿La ruta regresa por el mismo camino al punto inicial? (s/n): ").strip().lower()
-    if regreso not in ["s", "n"]:
-        print("Respuesta inválida. Use 's' para sí o 'n' para no.")
-        return
-
-    try:
-        cantidad_paradas = int(input("¿Cuántas paradas habrá del origen al destino? "))
-    except ValueError:
-        print("Debe ingresar un número válido para la cantidad de paradas.")
-        return
-
-    if not 1 <= cantidad_paradas <= 100:
-        print("La cantidad de paradas debe estar entre 1 y 100.")
-        return
-
-    while True:
-        hora_salida = input("Ingrese la hora de salida (HH:MM, formato 24 horas): ").strip()
-        try:
-            hora_salida = datetime.strptime(hora_salida, "%H:%M").strftime("%H:%M")
-            break
-        except ValueError:
-            print("Hora inválida. Ingrese una hora válida en formato HH:MM, por ejemplo 08:30.")
+    origen = leer_texto("Ingrese el punto de inicio (origen): ")
+    destino = leer_texto("Ingrese el destino final: ")
+    regreso = leer_si_no(
+        "¿La ruta regresa por el mismo camino al punto inicial? (s/n): "
+    )
+    cantidad_paradas = leer_entero(
+        "¿Cuántas paradas habrá del origen al destino? ", 1, 100
+    )
+    hora_salida = leer_hora(
+        "Ingrese la hora de salida (HH:MM, formato 24 horas): "
+    )
 
     paradas = []
     tiempo_total = 0
 
     print("\nIngrese las paradas y la duración de cada tramo desde el punto anterior:")
     for i in range(1, cantidad_paradas + 1):
-        nombre_parada = input(f"Nombre de la parada {i}: ").strip()
-        if not nombre_parada:
-            print("El nombre de la parada no puede estar vacío.")
-            return
-
-        try:
-            tiempo_parada = int(
-                input(
-                    f"Duración del tramo hasta '{nombre_parada}' "
-                    "(minutos): "
-                )
-            )
-        except ValueError:
-            print("El tiempo debe ser un número entero en minutos.")
-            return
-
-        if not 1 <= tiempo_parada <= MAX_MINUTOS_TRAMO:
-            print("La duración debe estar entre 1 y 1440 minutos.")
-            return
+        nombre_parada = leer_texto(f"Nombre de la parada {i}: ")
+        tiempo_parada = leer_entero(
+            f"Duración del tramo hasta '{nombre_parada}' (minutos): ",
+            1,
+            MAX_MINUTOS_TRAMO,
+        )
 
         paradas.append({"nombre": nombre_parada, "tiempo": tiempo_parada})
         tiempo_total += tiempo_parada
 
     ultimo_punto = paradas[-1]["nombre"]
-    try:
-        tiempo_destino = int(
-            input(
-                f"Duración desde '{ultimo_punto}' hasta '{destino}' (minutos): "
-            )
-        )
-    except ValueError:
-        print("El tiempo debe ser un número entero en minutos.")
-        return
-
-    if not 1 <= tiempo_destino <= MAX_MINUTOS_TRAMO:
-        print("La duración debe estar entre 1 y 1440 minutos.")
-        return
+    tiempo_destino = leer_entero(
+        f"Duración desde '{ultimo_punto}' hasta '{destino}' (minutos): ",
+        1,
+        MAX_MINUTOS_TRAMO,
+    )
 
     tiempo_total += tiempo_destino
     tiempos_regreso = []
@@ -296,16 +230,11 @@ def asignar_ruta():
         for origen_tramo, destino_tramo in zip(
             origenes_regreso, puntos_regreso
         ):
-            try:
-                tiempo_tramo = int(
-                    input(f"Duración desde '{origen_tramo}' hasta '{destino_tramo}': ")
-                )
-            except ValueError:
-                print("El tiempo debe ser un número entero en minutos.")
-                return
-            if not 1 <= tiempo_tramo <= MAX_MINUTOS_TRAMO:
-                print("La duración debe estar entre 1 y 1440 minutos.")
-                return
+            tiempo_tramo = leer_entero(
+                f"Duración desde '{origen_tramo}' hasta '{destino_tramo}': ",
+                1,
+                MAX_MINUTOS_TRAMO,
+            )
             tiempos_regreso.append(tiempo_tramo)
 
     tiempo_vuelta = sum(tiempos_regreso)
@@ -329,7 +258,7 @@ def asignar_ruta():
     }
 
     conflicto = hay_conflicto_horario(ruta, rutas)
-    if conflicto:
+    while conflicto:
         ruta_existente, recursos = conflicto
         recursos_texto = " y ".join(recursos)
         horarios_existentes = calcular_horarios(ruta_existente)
@@ -343,7 +272,11 @@ def asignar_ruta():
             f"superpuesta de {ruta_existente['hora_salida']} a "
             f"{hora_fin}."
         )
-        return
+        hora_salida = leer_hora(
+            "Ingrese otra hora de salida para evitar el conflicto (HH:MM): "
+        )
+        ruta["hora_salida"] = hora_salida
+        conflicto = hay_conflicto_horario(ruta, rutas)
 
     rutas.append(ruta)
 

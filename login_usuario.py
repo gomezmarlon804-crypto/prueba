@@ -31,6 +31,11 @@ def login_usuario():
         print("Contraseña incorrecta.")
         print("1. Intentarlo nuevamente")
         print("2. Recuperar contraseña")
-        opcion = input("Seleccione una opción: ").strip()
-        if opcion == "2":
-            recuperar_cuenta("usuario")
+        while True:
+            opcion = input("Seleccione una opción: ").strip()
+            if opcion == "1":
+                break
+            if opcion == "2":
+                recuperar_cuenta("usuario")
+                break
+            print("Opción inválida. Seleccione 1 o 2.")

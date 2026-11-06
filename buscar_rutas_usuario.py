@@ -9,12 +9,13 @@ def buscar_rutas_usuario():
         print("\nTodavía no hay rutas disponibles para buscar.")
         return
 
-    consulta = input(
-        "\nIngrese el destino, origen o nombre de una parada: "
-    ).strip().casefold()
-    if not consulta:
+    while True:
+        consulta = input(
+            "\nIngrese el destino, origen o nombre de una parada: "
+        ).strip().casefold()
+        if consulta:
+            break
         print("La búsqueda no puede estar vacía.")
-        return
 
     resultados = [
         ruta

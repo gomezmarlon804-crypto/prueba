@@ -1,23 +1,13 @@
 from copy import deepcopy
 from datetime import datetime
 
+from entradas import leer_entero, leer_hora, leer_opcion, leer_si_no, leer_texto
 from horario import MAX_MINUTOS_TRAMO, hay_conflicto_horario
 from limpiar_pantalla import limpiar_pantalla
 
 
 def _leer_entero_positivo(mensaje):
-    try:
-        valor = int(input(mensaje).strip())
-    except ValueError:
-        print("Ingrese un número entero válido.")
-        return None
-    if valor <= 0:
-        print("El valor debe ser un entero positivo.")
-        return None
-    if valor > MAX_MINUTOS_TRAMO:
-        print("La duración no puede superar 1440 minutos.")
-        return None
-    return valor
+    return leer_entero(mensaje, 1, MAX_MINUTOS_TRAMO)
 
 
 def _seleccionar_elemento(elementos, etiqueta):
@@ -35,15 +25,10 @@ def _seleccionar_elemento(elementos, etiqueta):
                 f"({elemento['hora_salida']})"
             )
         print(f"{indice}. {descripcion}")
-    try:
-        indice = int(input("Seleccione un número (0 para cancelar): "))
-    except ValueError:
-        print("Ingrese un número válido.")
-        return None
+    indice = leer_entero(
+        "Seleccione un número (0 para cancelar): ", 0, len(elementos)
+    )
     if indice == 0:
-        return None
-    if not 1 <= indice <= len(elementos):
-        print("Selección fuera de rango.")
         return None
     return indice - 1
 
@@ -57,7 +42,7 @@ def _gestionar_conductores(conductores, rutas):
     if indice is None:
         return
     conductor = conductores[indice]
-    accion = input("¿Editar o eliminar? (e/d): ").strip().casefold()
+    accion = leer_opcion("¿Editar o eliminar? (e/d): ", ("e", "d")).casefold()
 
     if accion == "d":
         if any(ruta["identificacion"] == conductor["identificacion"] for ruta in rutas):
@@ -67,31 +52,30 @@ def _gestionar_conductores(conductores, rutas):
             conductores.pop(indice)
             print("Conductor eliminado.")
         return
-    if accion != "e":
-        print("Opción no válida.")
-        return
-
     nombre = input(f"Nombre [{conductor['nombre']}]: ").strip()
-    identificacion = input(
-        f"Identificación [{conductor['identificacion']}]: "
-    ).strip()
-    telefono = input(f"Teléfono [{conductor['telefono']}]: ").strip()
-    nueva_identificacion = identificacion or conductor["identificacion"]
+    while True:
+        identificacion = input(
+            f"Identificación [{conductor['identificacion']}]: "
+        ).strip()
+        nueva_identificacion = identificacion or conductor["identificacion"]
+        if any(
+            otro is not conductor
+            and otro["identificacion"].casefold() == nueva_identificacion.casefold()
+            for otro in conductores
+        ):
+            print(f"La identificación '{nueva_identificacion}' ya está registrada.")
+            continue
+        break
+    while True:
+        telefono = input(f"Teléfono [{conductor['telefono']}]: ").strip()
+        nuevo_telefono = telefono or conductor["telefono"]
+        if nuevo_telefono and any(caracter.isdigit() for caracter in nuevo_telefono):
+            break
+        print("El teléfono debe contener al menos un número.")
     if not (nombre or conductor["nombre"]) or not (
         telefono or conductor["telefono"]
     ):
         print("El nombre y el teléfono son obligatorios.")
-        return
-    nuevo_telefono = telefono or conductor["telefono"]
-    if not any(caracter.isdigit() for caracter in nuevo_telefono):
-        print("El teléfono debe contener al menos un número.")
-        return
-    if any(
-        otro is not conductor
-        and otro["identificacion"].casefold() == nueva_identificacion.casefold()
-        for otro in conductores
-    ):
-        print(f"La identificación '{nueva_identificacion}' ya está registrada.")
         return
 
     identificacion_anterior = conductor["identificacion"]
@@ -114,7 +98,7 @@ def _gestionar_vehiculos(vehiculos, rutas):
     if indice is None:
         return
     vehiculo = vehiculos[indice]
-    accion = input("¿Editar o eliminar? (e/d): ").strip().casefold()
+    accion = leer_opcion("¿Editar o eliminar? (e/d): ", ("e", "d")).casefold()
 
     if accion == "d":
         if any(ruta["vehiculo"] == vehiculo["placa"] for ruta in rutas):
@@ -124,11 +108,17 @@ def _gestionar_vehiculos(vehiculos, rutas):
             vehiculos.pop(indice)
             print("Vehículo eliminado.")
         return
-    if accion != "e":
-        print("Opción no válida.")
-        return
-
-    placa = input(f"Placa [{vehiculo['placa']}]: ").strip().upper()
+    while True:
+        placa = input(f"Placa [{vehiculo['placa']}]: ").strip().upper()
+        nueva_placa = placa or vehiculo["placa"]
+        if any(
+            otro is not vehiculo
+            and otro["placa"].casefold() == nueva_placa.casefold()
+            for otro in vehiculos
+        ):
+            print(f"La placa '{nueva_placa}' ya está registrada.")
+            continue
+        break
     marca = input(f"Marca [{vehiculo['marca'] or 'vacía'}] (- para borrar): ").strip()
     modelo = input(
         f"Modelo [{vehiculo['modelo'] or 'vacío'}] (- para borrar): "
@@ -139,17 +129,20 @@ def _gestionar_vehiculos(vehiculos, rutas):
         f"Capacidad [{vehiculo['capacidad']}]: "
     ).strip()
 
-    nueva_placa = placa or vehiculo["placa"]
     nuevo_tipo = tipo or vehiculo["tipo"]
     nueva_capacidad = vehiculo["capacidad"]
     if capacidad_texto:
-        try:
-            nueva_capacidad = int(capacidad_texto)
-            if nueva_capacidad <= 0:
-                raise ValueError
-        except ValueError:
-            print("La capacidad debe ser un número entero positivo.")
-            return
+        while True:
+            try:
+                nueva_capacidad = int(capacidad_texto)
+                if nueva_capacidad <= 0:
+                    raise ValueError
+                break
+            except ValueError:
+                print("La capacidad debe ser un número entero positivo.")
+                capacidad_texto = input(
+                    f"Capacidad [{vehiculo['capacidad']}]: "
+                ).strip()
     nuevo_anio = vehiculo["anio"] if not anio else ("" if anio == "-" else anio)
     if nuevo_anio and (
         not nuevo_anio.isdigit()
@@ -158,14 +151,6 @@ def _gestionar_vehiculos(vehiculos, rutas):
     ):
         print("El año debe ser válido y no puede estar en el futuro.")
         return
-    if any(
-        otro is not vehiculo
-        and otro["placa"].casefold() == nueva_placa.casefold()
-        for otro in vehiculos
-    ):
-        print(f"La placa '{nueva_placa}' ya está registrada.")
-        return
-
     placa_anterior = vehiculo["placa"]
     vehiculo.update(
         {
@@ -196,21 +181,11 @@ def _leer_duracion(mensaje):
 
 
 def _editar_tiempos_ida(ruta):
-    try:
-        cantidad = int(input("Cantidad de paradas (mínimo 1): "))
-    except ValueError:
-        print("Ingrese un número entero válido.")
-        return False
-    if not 1 <= cantidad <= 100:
-        print("La cantidad de paradas debe estar entre 1 y 100.")
-        return False
+    cantidad = leer_entero("Cantidad de paradas (mínimo 1): ", 1, 100)
 
     paradas = []
     for indice in range(1, cantidad + 1):
-        nombre = input(f"Nombre de la parada {indice}: ").strip()
-        if not nombre:
-            print("El nombre de la parada no puede estar vacío.")
-            return False
+        nombre = leer_texto(f"Nombre de la parada {indice}: ")
         duracion = _leer_duracion(f"Duración hasta '{nombre}' (minutos): ")
         if duracion is None:
             return False
@@ -228,10 +203,7 @@ def _editar_tiempos_ida(ruta):
 
 
 def _editar_regreso(ruta):
-    respuesta = input("¿La ruta regresa al origen? (s/n): ").strip().casefold()
-    if respuesta not in ("s", "n"):
-        print("Responda 's' o 'n'.")
-        return False
+    respuesta = leer_si_no("¿La ruta regresa al origen? (s/n): ")
     if respuesta == "n":
         ruta["regresa"] = False
         ruta["tiempos_regreso"] = []
@@ -270,16 +242,12 @@ def _gestionar_rutas(conductores, vehiculos, rutas):
     if indice is None:
         return
     ruta = rutas[indice]
-    accion = input("¿Editar o eliminar? (e/d): ").strip().casefold()
+    accion = leer_opcion("¿Editar o eliminar? (e/d): ", ("e", "d")).casefold()
     if accion == "d":
         if _confirmar():
             rutas.pop(indice)
             print("Ruta eliminada.")
         return
-    if accion != "e":
-        print("Opción no válida.")
-        return
-
     candidata = deepcopy(ruta)
     cancelar = False
     while True:
@@ -318,12 +286,17 @@ def _gestionar_rutas(conductores, vehiculos, rutas):
                 f"Hora de salida [{candidata['hora_salida']}] (HH:MM): "
             ).strip()
             if valor:
-                try:
-                    candidata["hora_salida"] = datetime.strptime(
-                        valor, "%H:%M"
-                    ).strftime("%H:%M")
-                except ValueError:
-                    print("Hora inválida. Use el formato HH:MM.")
+                while True:
+                    try:
+                        candidata["hora_salida"] = datetime.strptime(
+                            valor, "%H:%M"
+                        ).strftime("%H:%M")
+                        break
+                    except ValueError:
+                        print("Hora inválida. Use el formato HH:MM.")
+                        valor = input(
+                            f"Hora de salida [{candidata['hora_salida']}] (HH:MM): "
+                        ).strip()
         elif opcion == "6":
             if not _editar_tiempos_ida(candidata):
                 cancelar = True
@@ -345,13 +318,16 @@ def _gestionar_rutas(conductores, vehiculos, rutas):
     _recalcular_duracion(candidata)
     otras_rutas = rutas[:indice] + rutas[indice + 1 :]
     conflicto = hay_conflicto_horario(candidata, otras_rutas)
-    if conflicto:
+    while conflicto:
         _, recursos = conflicto
         print(
             "No se guardaron los cambios: el "
             f"{' y '.join(recursos)} tiene otra ruta en ese horario."
         )
-        return
+        candidata["hora_salida"] = leer_hora(
+            "Ingrese otra hora de salida (HH:MM): "
+        )
+        conflicto = hay_conflicto_horario(candidata, otras_rutas)
     rutas[indice] = candidata
     print("Ruta actualizada.")
 

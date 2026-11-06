@@ -32,7 +32,12 @@ def login_admin():
             print("Contraseña incorrecta.")
             print("1. Intentarlo nuevamente")
             print("2. Recuperar contraseña")
-            opcion = input("Seleccione una opción: ").strip()
-            if opcion == "2":
-                if recuperar_cuenta("admin"):
+            while True:
+                opcion = input("Seleccione una opción: ").strip()
+                if opcion == "1":
+                    break
+                if opcion == "2":
+                    if recuperar_cuenta("admin"):
+                        break
                     continue
+                print("Opción inválida. Seleccione 1 o 2.")

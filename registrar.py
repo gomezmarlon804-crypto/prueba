@@ -15,31 +15,36 @@ def registrar(rol):
 
     if buscar_usuario(nombre) is not None:
         print(f"Error: el nombre '{nombre}' ya está en uso. Elija otro.")
-        opcion = input("¿Desea iniciar sesión con esta cuenta? (1: Sí, 2: No): ").strip()
-        if opcion == "1":
-            return "__login__"
-        return None
+        while True:
+            opcion = input(
+                "¿Desea iniciar sesión con esta cuenta? (1: Sí, 2: No): "
+            ).strip()
+            if opcion == "1":
+                return "__login__"
+            if opcion == "2":
+                return None
+            print("Opción inválida. Seleccione 1 o 2.")
 
     print("\nPregunta de seguridad para recuperar la contraseña:")
     print("1. ¿Cómo se llama tu mascota?")
     print("2. ¿Cuál es tu ciudad de nacimiento?")
     print("3. ¿Cuál es tu comida favorita?")
-    opcion = input("Seleccione una pregunta (1-3): ").strip()
     preguntas = {
         "1": "¿Cómo se llama tu mascota?",
         "2": "¿Cuál es tu ciudad de nacimiento?",
         "3": "¿Cuál es tu comida favorita?",
     }
-    if not opcion:
-        opcion = "1"
-    if opcion not in preguntas:
+    while True:
+        opcion = input("Seleccione una pregunta (1-3): ").strip()
+        if opcion in preguntas:
+            break
         print("La pregunta de seguridad seleccionada no es válida.")
-        input("Presione Enter para volver al menú...")
-        return None
 
-    respuesta = input("Ingrese la respuesta de seguridad: ").strip()
-    if not respuesta:
-        respuesta = "sin respuesta registrada"
+    while True:
+        respuesta = input("Ingrese la respuesta de seguridad: ").strip()
+        if respuesta:
+            break
+        print("Error: la respuesta de seguridad no puede estar vacía.")
 
     usuarios.append(
         {

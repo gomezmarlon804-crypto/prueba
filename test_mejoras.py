@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import menu
 import login_admin
+import recuperar_cuenta
 from mostrar_ruta_usuario import mostrar_ruta_usuario
 from gestion_registros import (
     _gestionar_conductores,
@@ -130,13 +131,14 @@ class PruebasRegistros(unittest.TestCase):
             patch("menu.limpiar_pantalla"),
             patch(
                 "builtins.input",
-                side_effect=["ABC123", "", "", "", "urbano", "0"],
+                side_effect=["ABC123", "", "", "", "urbano", "0", "40"],
             ),
             redirect_stdout(StringIO()),
         ):
             menu.registrar_vehiculo()
 
-        self.assertEqual(menu.vehiculos, [])
+        self.assertEqual(len(menu.vehiculos), 1)
+        self.assertEqual(menu.vehiculos[0]["capacidad"], 40)
 
     def test_no_permite_identificaciones_duplicadas(self):
         menu.conductores.append(
@@ -146,13 +148,14 @@ class PruebasRegistros(unittest.TestCase):
             patch("menu.limpiar_pantalla"),
             patch(
                 "builtins.input",
-                side_effect=["Luis", "id-1", "555-2"],
+                side_effect=["Luis", "id-1", "id-2", "555-2"],
             ),
             redirect_stdout(StringIO()),
         ):
             menu.registrar_conductor()
 
-        self.assertEqual(len(menu.conductores), 1)
+        self.assertEqual(len(menu.conductores), 2)
+        self.assertEqual(menu.conductores[1]["identificacion"], "id-2")
 
     def test_asigna_ruta_con_regreso_y_horarios_independientes(self):
         menu.conductores.append(
@@ -220,7 +223,7 @@ class PruebasRegistros(unittest.TestCase):
         )
         respuestas = [
             "1", "1", "Otro", "Destino2", "n", "1", "08:20",
-            "P2", "10", "20",
+            "P2", "10", "20", "10:00",
         ]
         salida = StringIO()
         with (
@@ -230,7 +233,7 @@ class PruebasRegistros(unittest.TestCase):
         ):
             menu.asignar_ruta()
 
-        self.assertEqual(len(menu.rutas), 1)
+        self.assertEqual(len(menu.rutas), 2)
         self.assertIn("superpuesta", salida.getvalue())
 
     def test_no_elimina_conductor_con_rutas_asignadas(self):
@@ -349,7 +352,7 @@ class PruebasContrasenas(unittest.TestCase):
         usuarios.clear()
         with (
             patch("registrar.pedir_credenciales", return_value=("admin", "secreta")),
-            patch("builtins.input", return_value=""),
+            patch("builtins.input", side_effect=["", "respuesta", ""]),
             redirect_stdout(StringIO()),
         ):
             registrar("admin")
@@ -380,6 +383,33 @@ class PruebasContrasenas(unittest.TestCase):
 
         menu_admin.assert_called_once_with()
         usuarios.clear()
+
+    def test_recuperacion_no_guarda_clave_vacia(self):
+        usuario = {
+            "nombre": "admin",
+            "clave": proteger_clave("secreta"),
+            "rol": "admin",
+            "pregunta": "¿Cómo se llama tu mascota?",
+            "respuesta": proteger_clave("firulais"),
+        }
+        clave_original = usuario["clave"]
+
+        with (
+            patch("recuperar_cuenta.buscar_usuario", return_value=usuario),
+            patch("recuperar_cuenta.verificar_clave", return_value=True),
+            patch(
+                "recuperar_cuenta._leer_clave",
+                side_effect=["", "", "nueva-clave", "nueva-clave"],
+            ),
+            patch("builtins.input", return_value=""),
+            patch("recuperar_cuenta.limpiar_pantalla"),
+            redirect_stdout(StringIO()),
+        ):
+            recuperada = recuperar_cuenta.recuperar_cuenta("admin")
+
+        self.assertTrue(recuperada)
+        self.assertNotEqual(usuario["clave"], clave_original)
+        self.assertTrue(verificar_clave("nueva-clave", usuario["clave"]))
 
 
 if __name__ == "__main__":
