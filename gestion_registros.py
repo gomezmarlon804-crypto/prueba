@@ -1,6 +1,11 @@
 from copy import deepcopy
 from datetime import datetime
 
+from almacenamiento import (
+    guardar_conductores,
+    guardar_rutas,
+    guardar_vehiculos,
+)
 from entradas import leer_entero, leer_hora, leer_opcion, leer_si_no, leer_texto
 from horario import MAX_MINUTOS_TRAMO, hay_conflicto_horario
 from limpiar_pantalla import limpiar_pantalla
@@ -50,6 +55,7 @@ def _gestionar_conductores(conductores, rutas):
             return
         if _confirmar():
             conductores.pop(indice)
+            guardar_conductores(conductores)
             print("Conductor eliminado.")
         return
     nombre = input(f"Nombre [{conductor['nombre']}]: ").strip()
@@ -90,6 +96,8 @@ def _gestionar_conductores(conductores, rutas):
         if ruta["identificacion"] == identificacion_anterior:
             ruta["identificacion"] = nueva_identificacion
             ruta["conductor"] = conductor["nombre"]
+    guardar_conductores(conductores)
+    guardar_rutas(rutas)
     print("Conductor actualizado.")
 
 
@@ -106,6 +114,7 @@ def _gestionar_vehiculos(vehiculos, rutas):
             return
         if _confirmar():
             vehiculos.pop(indice)
+            guardar_vehiculos(vehiculos)
             print("Vehículo eliminado.")
         return
     while True:
@@ -173,6 +182,8 @@ def _gestionar_vehiculos(vehiculos, rutas):
     for ruta in rutas:
         if ruta["vehiculo"] == placa_anterior:
             ruta["vehiculo"] = nueva_placa
+    guardar_vehiculos(vehiculos)
+    guardar_rutas(rutas)
     print("Vehículo actualizado.")
 
 
@@ -246,6 +257,7 @@ def _gestionar_rutas(conductores, vehiculos, rutas):
     if accion == "d":
         if _confirmar():
             rutas.pop(indice)
+            guardar_rutas(rutas)
             print("Ruta eliminada.")
         return
     candidata = deepcopy(ruta)
@@ -329,6 +341,7 @@ def _gestionar_rutas(conductores, vehiculos, rutas):
         )
         conflicto = hay_conflicto_horario(candidata, otras_rutas)
     rutas[indice] = candidata
+    guardar_rutas(rutas)
     print("Ruta actualizada.")
 
 

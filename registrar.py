@@ -1,3 +1,4 @@
+from almacenamiento import guardar_usuarios
 from buscar_usuario import buscar_usuario
 from limpiar_pantalla import limpiar_pantalla
 from pedir_credenciales import pedir_credenciales
@@ -55,6 +56,7 @@ def registrar(rol):
             "respuesta": proteger_clave(respuesta.casefold()),
         }
     )
+    guardar_usuarios(usuarios)
     print(
         f"¡{'Administrador' if rol == 'admin' else 'Usuario'} '{nombre}' registrado con éxito!"
     )

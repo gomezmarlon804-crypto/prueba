@@ -1,5 +1,10 @@
 from datetime import datetime
 
+from almacenamiento import (
+    guardar_conductores,
+    guardar_rutas,
+    guardar_vehiculos,
+)
 from entradas import leer_entero, leer_hora, leer_opcion, leer_si_no, leer_texto
 from gestion_registros import gestionar_registros
 from horario import (
@@ -76,6 +81,7 @@ def reportar_retraso():
             f"aproximadamente {minutos} minuto(s) de retraso por: {motivo.lower()}."
         ),
     }
+    guardar_rutas(rutas)
     print(f"\nAviso registrado para la ruta de {ruta['origen']} a {ruta['destino']}.")
     print(ruta["retraso"]["mensaje"])
 
@@ -107,6 +113,7 @@ def registrar_conductor():
             "telefono": telefono,
         }
     )
+    guardar_conductores(conductores)
     print(f"Conductor '{nombre}' registrado correctamente.")
 
 
@@ -152,6 +159,7 @@ def registrar_vehiculo():
             "capacidad": capacidad,
         }
     )
+    guardar_vehiculos(vehiculos)
     print(f"Vehículo '{placa}' registrado correctamente.")
 
 
@@ -255,6 +263,7 @@ def asignar_ruta():
         "tiempo_total": tiempo_total,
         "tiempo_vuelta": tiempo_vuelta,
         "tiempo_total_recorrido": tiempo_total_recorrido,
+        "asientos_ocupados": 0,
     }
 
     conflicto = hay_conflicto_horario(ruta, rutas)
@@ -279,6 +288,7 @@ def asignar_ruta():
         conflicto = hay_conflicto_horario(ruta, rutas)
 
     rutas.append(ruta)
+    guardar_rutas(rutas)
 
     print(f"\nRuta asignada correctamente para {conductores[conductor_index]['nombre']}.")
     print(f"Origen: {origen} | Destino: {destino}")

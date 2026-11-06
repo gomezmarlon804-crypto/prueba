@@ -1,0 +1,16 @@
+[
+  {
+    "nombre": "kina",
+    "clave": "pbkdf2_sha256$310000$7070af97d05ee9c693c09f44f10d36d8$b22952b8f7ce0f3aaebd8936ae143d62f88c2894db7b5ca5bd54d7b726a9a674",
+    "rol": "admin",
+    "pregunta": "¿Cómo se llama tu mascota?",
+    "respuesta": "pbkdf2_sha256$310000$22e5ce84cd2cb9a36c38bd9ab5f7322e$4c88fa7395b4d412a90850c71385a14de6725c483ec81fb947625a861c7ab715"
+  },
+  {
+    "nombre": "marlon",
+    "clave": "pbkdf2_sha256$310000$2ea9cdbee0d82dd80645a75969909328$2b8662c786449a813ceb3ecbaa118925151c1e56ca75bd30487a3ec9fc470ced",
+    "rol": "usuario",
+    "pregunta": "¿Cuál es tu ciudad de nacimiento?",
+    "respuesta": "pbkdf2_sha256$310000$7b78ebf2f6698ff6be48111098ed31d0$88e843df2b11d68226d90da9a753f27e06b8f4c5cbdfdddd5f195eb11291a349"
+  }
+]

@@ -1,0 +1,28 @@
+[
+  {
+    "conductor": "marlon Antonio Gomez Herrera",
+    "identificacion": "281-110504-1008S",
+    "vehiculo": "LE 11758",
+    "origen": "1",
+    "destino": "2",
+    "hora_salida": "08:45",
+    "regresa": false,
+    "paradas": [
+      {
+        "nombre": "4",
+        "tiempo": 15
+      },
+      {
+        "nombre": "5",
+        "tiempo": 15
+      }
+    ],
+    "cantidad_paradas": 2,
+    "tiempo_destino": 15,
+    "tiempos_regreso": [],
+    "tiempo_total": 45,
+    "tiempo_vuelta": 0,
+    "tiempo_total_recorrido": 45,
+    "asientos_ocupados": 20
+  }
+]

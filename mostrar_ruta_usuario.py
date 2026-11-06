@@ -22,6 +22,11 @@ def mostrar_ruta_usuario(ruta):
             f"| Capacidad: {vehiculo['capacidad']} pasajeros"
         )
 
+    capacidad = vehiculo["capacidad"] if vehiculo else ruta.get("capacidad", 40)
+    ocupados = ruta.get("asientos_ocupados", ruta.get("pasajeros_actuales", 0))
+    disponibles = max(0, capacidad - ocupados)
+    print(f"  Disponibilidad: Quedan {disponibles} de {capacidad} asientos")
+
     print("Recorrido de ida:")
     print(f"  {ruta['hora_salida']} - {ruta['origen']} (salida)")
     for parada, hora_parada in zip(ruta["paradas"], horarios_paradas):

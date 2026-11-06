@@ -1,3 +1,4 @@
+from almacenamiento import guardar_usuarios
 from buscar_usuario import buscar_usuario
 from limpiar_pantalla import limpiar_pantalla
 from pedir_credenciales import _leer_clave
@@ -45,6 +46,7 @@ def recuperar_cuenta(rol):
         break
 
     usuario["clave"] = proteger_clave(nueva_clave)
+    guardar_usuarios()
     print("La contraseña fue recuperada correctamente.")
     input("Presione Enter para continuar...")
     return True
